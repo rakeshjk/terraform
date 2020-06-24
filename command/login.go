@@ -494,6 +494,8 @@ func (c *LoginCommand) interactiveGetTokenByUI(hostname svchost.Hostname, credsC
 		return "", diags
 	}
 
+	c.Ui.Output("\n---------------------------------------------------------------------------------\n")
+
 	tokensURL := url.URL{
 		Scheme:   "https",
 		Host:     service.Hostname(),
@@ -508,6 +510,7 @@ func (c *LoginCommand) interactiveGetTokenByUI(hostname svchost.Hostname, credsC
 			c.Ui.Output(fmt.Sprintf("Terraform must now open a web browser to the tokens page for %s.\n", hostname.ForDisplay()))
 			c.Ui.Output(fmt.Sprintf("If a browser does not open this automatically, open the following URL to proceed:\n    %s\n", tokensURL.String()))
 		} else {
+			log.Printf("[DEBUG] error opening web browser: %s", err)
 			// Assume we're on a platform where opening a browser isn't possible.
 			launchBrowserManually = true
 		}
@@ -590,7 +593,7 @@ func (c *LoginCommand) interactiveContextConsent(hostname svchost.Hostname, gran
 		}
 	}
 
-	v, err := c.Ui.Ask("Do you want to proceed? (y/n)")
+	v, err := c.Ui.Ask("Do you want to proceed? Only 'yes' will be accepted to confirm.")
 	if err != nil {
 		// Should not happen because this command checks that input is enabled
 		// before we get to this point.
@@ -598,12 +601,7 @@ func (c *LoginCommand) interactiveContextConsent(hostname svchost.Hostname, gran
 		return false, diags
 	}
 
-	switch strings.ToLower(v) {
-	case "y", "yes":
-		return true, diags
-	default:
-		return false, diags
-	}
+	return strings.ToLower(v) == "yes", diags
 }
 
 func (c *LoginCommand) listenerForCallback(minPort, maxPort uint16) (net.Listener, string, error) {

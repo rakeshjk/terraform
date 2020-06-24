@@ -186,4 +186,30 @@ func TestLogin(t *testing.T) {
 			t.Fatalf("missing expected error message\nwant: %s\nfull output:\n%s", want, got)
 		}
 	}))
+
+	t.Run("answering no cancels", loginTestCase(func(t *testing.T, c *LoginCommand, ui *cli.MockUi, inp func(string)) {
+		// Enter "no" at the consent prompt
+		inp("no\n")
+		status := c.Run(nil)
+		if status != 1 {
+			t.Fatalf("unexpected error code %d\nstderr:\n%s", status, ui.ErrorWriter.String())
+		}
+
+		if got, want := ui.ErrorWriter.String(), "Login cancelled"; !strings.Contains(got, want) {
+			t.Fatalf("missing expected error message\nwant: %s\nfull output:\n%s", want, got)
+		}
+	}))
+
+	t.Run("answering y cancels", loginTestCase(func(t *testing.T, c *LoginCommand, ui *cli.MockUi, inp func(string)) {
+		// Enter "y" at the consent prompt
+		inp("y\n")
+		status := c.Run(nil)
+		if status != 1 {
+			t.Fatalf("unexpected error code %d\nstderr:\n%s", status, ui.ErrorWriter.String())
+		}
+
+		if got, want := ui.ErrorWriter.String(), "Login cancelled"; !strings.Contains(got, want) {
+			t.Fatalf("missing expected error message\nwant: %s\nfull output:\n%s", want, got)
+		}
+	}))
 }
